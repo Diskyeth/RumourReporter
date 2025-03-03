@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import fs from "fs";
 import path from "path";
-import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "@/utils/farcaster"; // ✅ Updated import
+import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "./api/utils/farcaster"; // ✅ Updated import
 
 const FILE_PATH = path.resolve("replied_casts.json");
 

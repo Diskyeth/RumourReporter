@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "@/utils/farcaster"; // ✅ Import from utils
+import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "../utils/farcaster"; // ✅ Import from utils
 // ✅ API Route Handler - GET: Fetch & Reply to New Casts
 export async function GET() {
   try {
