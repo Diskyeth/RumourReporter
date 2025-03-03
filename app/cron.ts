@@ -12,7 +12,8 @@ if (fs.existsSync(FILE_PATH)) {
   repliedCasts = new Set(JSON.parse(data));
 }
 
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("*/30 * * * * *", async () => { 
+
   console.log("🔄 Running scheduled job to check for new casts...");
 
   const casts = await fetchNewMessages();
@@ -42,4 +43,4 @@ cron.schedule("*/5 * * * *", async () => {
   console.log("✅ Scheduled replies sent.");
 });
 
-console.log("⏳ Cron job started, checking for new casts every 5 minutes.");
+console.log("⏳ Cron job started, checking for new casts every 30sec.");
