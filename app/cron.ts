@@ -1,7 +1,8 @@
 import cron from "node-cron";
 import fs from "fs";
 import path from "path";
-import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "./api/utils/farcaster"; 
+import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "./api/utils/farcaster";
+
 const FILE_PATH = path.resolve("replied_casts.json");
 
 // Load replies to see if bot replied already.
@@ -12,9 +13,7 @@ if (fs.existsSync(FILE_PATH)) {
 }
 
 cron.schedule("*/10 * * * *", async () => {
-
-
-  console.log("🔄 Running scheduled job to check for new casts...");
+  console.log("Running scheduled job to check for new casts...");
 
   const casts = await fetchNewMessages();
   if (casts.length === 0) {
@@ -27,7 +26,7 @@ cron.schedule("*/10 * * * *", async () => {
 
     if (repliedCasts.has(hash)) {
       console.log(`⏩ Already replied to cast: ${hash}`);
-      continue; // Skip if already replied
+      continue;
     }
 
     console.log(`📝 New cast detected: "${text}"`);
@@ -43,4 +42,4 @@ cron.schedule("*/10 * * * *", async () => {
   console.log("✅ Scheduled replies sent.");
 });
 
-console.log("⏳ Cron job started, checking for new casts every 30sec.");
+console.log("⏳ Cron job started, checking for new casts every 10 minutes.");

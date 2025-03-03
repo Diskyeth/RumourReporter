@@ -56,7 +56,7 @@ export async function fetchNewMessages() {
   }
 }
 
-// Post reply to farcaster
+// ✅ Function to post a reply to Neynar Farcaster API
 export async function postReplyToFarcaster(replyText: string, originalCastId: string) {
   const url = "https://api.neynar.com/v2/farcaster/cast";
   const apiKey = process.env.NEYNAR_API_KEY;
@@ -78,7 +78,7 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
 
     return response.data;
   } catch (error) {
-    console.error("Error posting reply to Farcaster:", error.response?.data || error.message);
+    console.error("❌ Error posting reply to Farcaster:", error.response?.data || error.message);
     throw error;
   }
 }
