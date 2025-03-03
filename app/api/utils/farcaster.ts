@@ -6,25 +6,22 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ✅ Function to generate a satirical, noir-style rumor response
-export async function generateNoirReply(messageText: string): Promise<string> {
+// ✅ Function to generate a satirical rumor
+export async function generateSatiricalRumor(messageText: string): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { 
-          role: "system", 
-          content: "You're a hard-boiled, cynical newsman in a film noir world. Every rumor is a case waiting to be cracked, every whisper has a grain of truth, and every reply should leave people wondering... just a little." 
-        },
+        { role: "system", content: "You're a hard-boiled, cynical newsman in a film noir world. Every rumor is a case waiting to be cracked, every whisper has a grain of truth, and every reply should leave people wondering... just a little." },
         { role: "user", content: `Reply to this rumor with sarcasm and mystery: "${messageText}"` }
       ],
-      max_tokens: 150,
-      temperature: 0.85,
+      max_tokens: 100,
+      temperature: 0.9,
     });
 
-    return response.choices[0].message?.content?.trim() || "Error: The truth remains elusive.";
+    return response.choices[0].message?.content?.trim() || "Error: No response generated.";
   } catch (error) {
-    console.error("❌ Error generating noir-style rumor response:", error);
+    console.error("❌ Error generating satire rumor:", error);
     return "A strange silence fills the air... maybe that's the real story.";
   }
 }
