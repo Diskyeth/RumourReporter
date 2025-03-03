@@ -7,7 +7,7 @@ const openai = new OpenAI({
 });
 
 // ✅ Export GET request handler
-export async function GET() {
+export async function GET(req: Request) {
   try {
     console.log("🔄 Checking for new casts...");
 
@@ -17,7 +17,20 @@ export async function GET() {
       return NextResponse.json({ message: "No new casts found" });
     }
 
-    return NextResponse.json({ message: "Fetched new casts!", casts });
+    for (const cast of casts) {
+      if (cast.type === "MESSAGE_TYPE_CAST_ADD") {
+        console.log(`📝 New cast from signer ${cast.signer}: "${cast.text}"`);
+
+        // Generate a satirical rumor
+        const satireRumor = await generateSatiricalRumor(cast.text);
+
+        // Post reply to Farcaster
+        const response = await postReplyToFarcaster(satireRumor, cast.hash);
+        console.log("✅ Replied with satire:", response);
+      }
+    }
+
+    return NextResponse.json({ message: "Satirical replies sent!" });
   } catch (error) {
     console.error("❌ Server Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
