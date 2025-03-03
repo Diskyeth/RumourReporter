@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import fs from "fs";
 import path from "path";
-import { fetchNewCasts, generateReply, postReplyToFarcaster } from "./api/reply/route";
+import { fetchNewMessages, generateReply, postReplyToFarcaster } from "./api/reply/route";
 
 const FILE_PATH = path.resolve("replied_casts.json");
 
@@ -15,7 +15,7 @@ if (fs.existsSync(FILE_PATH)) {
 cron.schedule("*/5 * * * *", async () => {
   console.log("🔄 Running scheduled job to check for new casts...");
 
-  const casts = await fetchNewCasts();
+  const casts = await fetchNewMessages();
   if (casts.length === 0) {
     console.log("⚠️ No new casts found.");
     return;
