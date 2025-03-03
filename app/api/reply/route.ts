@@ -7,7 +7,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Function to generate a satirical rumor
+// ✅ Function to generate a satirical rumor
 async function generateSatiricalRumor(messageText: string): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
@@ -27,7 +27,7 @@ async function generateSatiricalRumor(messageText: string): Promise<string> {
   }
 }
 
-// Function to fetch messages from Neynar API
+// ✅ Function to fetch messages from Neynar API
 async function fetchNewMessages() {
   const url = "https://hub-api.neynar.com/v1/castsByFid?fid=884230&pageSize=5&reverse=true";
   const apiKey = process.env.NEYNAR_API_KEY;
@@ -53,7 +53,7 @@ async function fetchNewMessages() {
   }
 }
 
-// Function to post a reply to Neynar Farcaster API
+// ✅ Function to post a reply to Neynar Farcaster API
 async function postReplyToFarcaster(replyText: string, originalCastId: string) {
   const url = "https://api.neynar.com/v2/farcaster/cast";
   const apiKey = process.env.NEYNAR_API_KEY;
@@ -129,56 +129,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
-
-// ✅ API Route Handler to Automatically Check & Reply to New Casts
-export async function GET() {
-  try {
-    console.log("🔄 Checking for new casts...");
-
-    const casts = await fetchNewMessages();
-    if (casts.length === 0) {
-      console.log("⚠️ No new casts found.");
-      return NextResponse.json({ message: "No new casts found" });
-    }
-
-    for (const cast of casts) {
-      if (cast.type === "MESSAGE_TYPE_CAST_ADD") {
-        console.log(`📝 New cast from signer ${cast.signer}: "${cast.text}"`);
-
-        // Generate a satirical rumor
-        const satireRumor = await generateSatiricalRumor(cast.text);
-
-        // Post reply to Farcaster
-        const response = await postReplyToFarcaster(satireRumor, cast.hash);
-        console.log("✅ Replied with satire:", response);
-      }
-    }
-
-    return NextResponse.json({ message: "Satirical replies sent!" });
-  } catch (error) {
-    console.error("❌ Server Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
-}
-
-// ✅ API Route Handler for Next.js 13+ App Router
-export async function POST(req) {
-  try {
-    const body = await req.json();
-    const { messageText, castId, userFid } = body;
-
-    if (!messageText || !castId || !userFid) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    const satireRumor = await generateSatiricalRumor(messageText);
-    const farcasterResponse = await postReplyToFarcaster(satireRumor, castId);
-
-    return NextResponse.json({ reply: satireRumor, farcasterResponse }, { status: 200 });
-  } catch (error) {
-    console.error("Server Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
-}
-
-export { fetchNewMessages };
