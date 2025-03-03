@@ -8,23 +8,27 @@ const openai = new OpenAI({
 
 // ✅ Function to generate a satirical rumor
 export async function generateSatiricalRumor(messageText: string): Promise<string> {
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "You're a hard-boiled, cynical newsman in a film noir world. Every rumor is a case waiting to be cracked, every whisper has a grain of truth, and every reply should leave people wondering... just a little." },
-        { role: "user", content: `Reply to this rumor with sarcasm and mystery: "${messageText}"` }
-      ],
-      max_tokens: 100,
-      temperature: 0.9,
-    });
-
-    return response.choices[0].message?.content?.trim() || "Error: No response generated.";
-  } catch (error) {
-    console.error("❌ Error generating satire rumor:", error);
-    return "A strange silence fills the air... maybe that's the real story.";
+    try {
+      const systemPrompt = process.env.PROMPT_SYSTEM || "Default system prompt.";
+      const userPrompt = process.env.PROMPT_USER || "Default user prompt: ";
+  
+      const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `${userPrompt} "${messageText}"` }
+        ],
+        max_tokens: 100,
+        temperature: 0.9,
+      });
+  
+      return response.choices[0].message?.content?.trim() || "Error: No response generated.";
+    } catch (error) {
+      console.error("❌ Error generating satire rumor:", error);
+      return "A strange silence fills the air... maybe that's the real story.";
+    }
   }
-}
+  
 
 // ✅ Function to fetch messages from Neynar API
 export async function fetchNewMessages() {
