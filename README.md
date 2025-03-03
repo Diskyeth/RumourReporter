@@ -8,6 +8,4 @@
 ```bash
 npm run dev
 
-
-## Want to support?
 https://buymeacoffee.com/disky.eth
