@@ -6,8 +6,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ✅ Export GET request handler
-export async function GET() {
+// ✅ GET request handler - Fetches and replies to new casts
+export async function GET(req: Request) {
   try {
     console.log("🔄 Checking for new casts...");
 
@@ -37,7 +37,7 @@ export async function GET() {
   }
 }
 
-// ✅ Export POST request handler
+// ✅ POST request handler - Processes incoming user messages
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   }
 }
 
-// ✅ Export helper functions
+// ✅ Helper function to fetch new messages
 export async function fetchNewMessages() {
   const url = "https://hub-api.neynar.com/v1/castsByFid?fid=884230&pageSize=5&reverse=true";
   const apiKey = process.env.NEYNAR_API_KEY;
@@ -68,19 +68,21 @@ export async function fetchNewMessages() {
     });
 
     const messages = response.data.messages || [];
-    return messages.map((msg) => ({
-      type: msg.data.type,
-      hash: msg.hash,
-      signer: msg.signer,
-      text: msg.data.castAddBody?.text || "",
-    })).filter(Boolean);
+    return messages
+      .map((msg) => ({
+        type: msg.data.type,
+        hash: msg.hash,
+        signer: msg.signer,
+        text: msg.data.castAddBody?.text || "",
+      }))
+      .filter(Boolean);
   } catch (error) {
     console.error("❌ Error fetching messages:", error.response?.data || error.message);
     return [];
   }
 }
 
-// ✅ Generate satirical rumors
+// ✅ Helper function to generate satirical rumors
 async function generateSatiricalRumor(messageText: string): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
@@ -100,7 +102,7 @@ async function generateSatiricalRumor(messageText: string): Promise<string> {
   }
 }
 
-// ✅ Post replies to Farcaster
+// ✅ Helper function to post replies to Farcaster
 async function postReplyToFarcaster(replyText: string, originalCastId: string) {
   const url = "https://api.neynar.com/v2/farcaster/cast";
   const apiKey = process.env.NEYNAR_API_KEY;
@@ -112,13 +114,17 @@ async function postReplyToFarcaster(replyText: string, originalCastId: string) {
   }
 
   try {
-    const response = await axios.post(url, {
-      text: replyText,
-      parent: originalCastId,
-      signer_uuid: signerUUID,
-    }, {
-      headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-    });
+    const response = await axios.post(
+      url,
+      {
+        text: replyText,
+        parent: originalCastId,
+        signer_uuid: signerUUID,
+      },
+      {
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+      }
+    );
 
     return response.data;
   } catch (error) {
