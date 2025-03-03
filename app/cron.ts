@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import fs from "fs";
 import path from "path";
-import { fetchNewMessages, generateReply, postReplyToFarcaster } from "./api/reply/route";
+import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "@/utils/farcaster"; // ✅ Updated import
 
 const FILE_PATH = path.resolve("replied_casts.json");
 
@@ -31,7 +31,7 @@ cron.schedule("*/5 * * * *", async () => {
 
     console.log(`📝 New cast detected: "${text}"`);
 
-    const replyText = await generateReply(text);
+    const replyText = await generateSatiricalRumor(text);
     await postReplyToFarcaster(replyText, hash);
 
     repliedCasts.add(hash);
