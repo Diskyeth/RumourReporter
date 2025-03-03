@@ -7,7 +7,7 @@ const openai = new OpenAI({
 });
 
 // ✅ Export GET request handler
-export async function GET(req: Request) {
+export async function GET() {
   try {
     console.log("🔄 Checking for new casts...");
 
