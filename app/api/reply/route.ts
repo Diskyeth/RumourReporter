@@ -27,7 +27,7 @@ async function generateSatiricalRumor(messageText) {
 }
 
 // ✅ Fetch messages from Neynar API
-async function fetchNewMessages() {
+export async function fetchNewMessages() {
   const url = "https://hub-api.neynar.com/v1/castsByFid?fid=884230&pageSize=5&reverse=true";
   const apiKey = process.env.NEYNAR_API_KEY;
 
