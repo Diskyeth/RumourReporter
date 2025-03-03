@@ -58,7 +58,7 @@ export async function POST(req: Request) {
 }
 
 // ✅ Helper function to fetch new messages
-export async function fetchNewMessages() {
+async function fetchNewMessages() {
   const url = "https://hub-api.neynar.com/v1/castsByFid?fid=884230&pageSize=5&reverse=true";
   const apiKey = process.env.NEYNAR_API_KEY;
 
