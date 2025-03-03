@@ -1,11 +1,10 @@
 import cron from "node-cron";
 import fs from "fs";
 import path from "path";
-import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "./api/utils/farcaster"; // ✅ Updated import
-
+import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "./api/utils/farcaster"; 
 const FILE_PATH = path.resolve("replied_casts.json");
 
-// ✅ Load previous replies from file
+// Load replies to see if bot replied already.
 let repliedCasts = new Set<string>();
 if (fs.existsSync(FILE_PATH)) {
   const data = fs.readFileSync(FILE_PATH, "utf-8");
@@ -27,7 +26,7 @@ cron.schedule("*/30 * * * * *", async () => {
 
     if (repliedCasts.has(hash)) {
       console.log(`⏩ Already replied to cast: ${hash}`);
-      continue; // ✅ Skip if already replied
+      continue; // Skip if already replied
     }
 
     console.log(`📝 New cast detected: "${text}"`);
@@ -36,7 +35,7 @@ cron.schedule("*/30 * * * * *", async () => {
     await postReplyToFarcaster(replyText, hash);
 
     repliedCasts.add(hash);
-    fs.writeFileSync(FILE_PATH, JSON.stringify(Array.from(repliedCasts)), "utf-8"); // ✅ Save to file
+    fs.writeFileSync(FILE_PATH, JSON.stringify(Array.from(repliedCasts)), "utf-8");
     console.log(`✅ Replied to cast: ${hash}`);
   }
 

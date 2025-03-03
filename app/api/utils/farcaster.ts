@@ -1,12 +1,12 @@
 import OpenAI from "openai";
 import axios from "axios";
 
-// Initialize OpenAI API
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ✅ Function to generate a satirical rumor
+// Generate prompt
 export async function generateSatiricalRumor(messageText: string): Promise<string> {
     try {
       const systemPrompt = process.env.PROMPT_SYSTEM || "Default system prompt.";
@@ -24,13 +24,13 @@ export async function generateSatiricalRumor(messageText: string): Promise<strin
   
       return response.choices[0].message?.content?.trim() || "Error: No response generated.";
     } catch (error) {
-      console.error("❌ Error generating satire rumor:", error);
+      console.error("Error generating rumour:", error);
       return "A strange silence fills the air... maybe that's the real story.";
     }
   }
   
 
-// ✅ Function to fetch messages from Neynar API
+// Fetch Casts
 export async function fetchNewMessages() {
   const url = "https://hub-api.neynar.com/v1/castsByFid?fid=884230&pageSize=5&reverse=true";
   const apiKey = process.env.NEYNAR_API_KEY;
@@ -51,19 +51,19 @@ export async function fetchNewMessages() {
       embeds: msg.data.castAddBody?.embeds || [],
     })) || [];
   } catch (error) {
-    console.error("❌ Error fetching messages:", error.response?.data || error.message);
+    console.error("Error fetching messages:", error.response?.data || error.message);
     return [];
   }
 }
 
-// ✅ Function to post a reply to Neynar Farcaster API
+// Post reply to farcaster
 export async function postReplyToFarcaster(replyText: string, originalCastId: string) {
   const url = "https://api.neynar.com/v2/farcaster/cast";
   const apiKey = process.env.NEYNAR_API_KEY;
   const signerUUID = process.env.NEYNAR_SIGNER_UUID;
 
   if (!apiKey || !signerUUID) {
-    console.error("❌ Missing Neynar API Key or Signer UUID!");
+    console.error("Missing Neynar API Key or Signer UUID!");
     throw new Error("Missing NEYNAR_API_KEY or NEYNAR_SIGNER_UUID in environment variables.");
   }
 
@@ -78,7 +78,7 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
 
     return response.data;
   } catch (error) {
-    console.error("❌ Error posting reply to Farcaster:", error.response?.data || error.message);
+    console.error("Error posting reply to Farcaster:", error.response?.data || error.message);
     throw error;
   }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "../utils/farcaster"; // ✅ Import from utils
-// ✅ API Route Handler - GET: Fetch & Reply to New Casts
+import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "../utils/farcaster";
+
 export async function GET() {
   try {
     console.log("🔄 Checking for new casts...");
@@ -15,22 +15,22 @@ export async function GET() {
       if (cast.type === "MESSAGE_TYPE_CAST_ADD") {
         console.log(`📝 New cast from signer ${cast.signer}: "${cast.text}"`);
 
-        // Generate a satirical rumor
+        // Generate a Rumour
         const satireRumor = await generateSatiricalRumor(cast.text);
 
-        // Post reply to Farcaster
+        // Post reply
         await postReplyToFarcaster(satireRumor, cast.hash);
       }
     }
 
     return NextResponse.json({ message: "Satirical replies sent!" });
   } catch (error) {
-    console.error("❌ Server Error:", error);
+    console.error("Server Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
-// ✅ API Route Handler - POST: Manually Reply to a Cast
+// API handler
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ reply: satireRumor, farcasterResponse }, { status: 200 });
   } catch (error) {
-    console.error("❌ Server Error:", error);
+    console.error("Server Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
