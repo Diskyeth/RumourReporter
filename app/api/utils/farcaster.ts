@@ -18,7 +18,7 @@ export async function generateSatiricalRumor(messageText: string): Promise<strin
           { role: "system", content: systemPrompt },
           { role: "user", content: `${userPrompt} "${messageText}"` }
         ],
-        max_tokens: 100,
+        max_tokens: 70,
         temperature: 0.9,
       });
   
@@ -32,7 +32,7 @@ export async function generateSatiricalRumor(messageText: string): Promise<strin
 
 // Fetch Casts
 export async function fetchNewMessages() {
-  const url = "https://hub-api.neynar.com/v1/castsByFid?fid=884230&pageSize=5&reverse=true";
+  const url = "https://hub-api.neynar.com/v1/castsByFid?fid=884230&pageSize=3&reverse=true";
   const apiKey = process.env.NEYNAR_API_KEY;
 
   try {

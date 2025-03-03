@@ -11,7 +11,8 @@ if (fs.existsSync(FILE_PATH)) {
   repliedCasts = new Set(JSON.parse(data));
 }
 
-cron.schedule("*/30 * * * * *", async () => { 
+cron.schedule("*/10 * * * *", async () => {
+
 
   console.log("🔄 Running scheduled job to check for new casts...");
 
