@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         console.log("✅ Reply posted successfully");
 
         // Post new cast with an embed of the original cast
-        await postNewCastWithEmbed(generatedText, originalCastId, originalCastAuthor);
+        await postNewCastWithEmbed(generatedText, originalCastId,);
         console.log("✅ New cast with embed posted successfully");
 
       } catch (err) {
