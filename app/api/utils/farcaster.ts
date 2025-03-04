@@ -16,7 +16,7 @@ export async function generateSatiricalRumor(messageText: string): Promise<strin
         { role: "system", content: systemPrompt },
         { role: "user", content: `${userPrompt} "${messageText}"` },
       ],
-      max_tokens: 100,
+      max_tokens: 256,
       temperature: 0.9,
     });
 
