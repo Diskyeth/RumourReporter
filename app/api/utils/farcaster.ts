@@ -67,36 +67,35 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
  * Posts a new cast with an embedded original cast.
  */
 export async function postNewCastWithEmbed(newCastText: string, originalCastId: string, originalCastAuthor: string) {
-  const url = "https://api.neynar.com/v2/farcaster/cast";
-  const apiKey = process.env.NEYNAR_API_KEY;
-  const signerUUID = process.env.NEYNAR_SIGNER_UUID;
-
-  if (!apiKey || !signerUUID) {
-    console.error("❌ Missing Neynar API Key or Signer UUID!");
-    throw new Error("Missing NEYNAR_API_KEY or NEYNAR_SIGNER_UUID in environment variables.");
+    const url = "https://api.neynar.com/v2/farcaster/cast";
+    const apiKey = process.env.NEYNAR_API_KEY;
+    const signerUUID = process.env.NEYNAR_SIGNER_UUID;
+  
+    if (!apiKey || !signerUUID) {
+      console.error("❌ Missing Neynar API Key or Signer UUID!");
+      throw new Error("Missing NEYNAR_API_KEY or NEYNAR_SIGNER_UUID in environment variables.");
+    }
+  
+    try {
+      const response = await axios.post(
+        url,
+        {
+          text: newCastText, // The new generated rumor
+          signer_uuid: signerUUID, // The bot's signer ID
+          embeds: [
+            {
+              castId: originalCastId, // Neynar expects "castId" instead of "cast_id"
+            },
+          ],
+        },
+        {
+          headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+        }
+      );
+  
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error posting new cast to Farcaster:", error.response?.data || error.message);
+      throw error;
+    }
   }
-
-  try {
-    const response = await axios.post(
-      url,
-      {
-        text: newCastText, // The new generated rumor
-        signer_uuid: signerUUID, // The bot's signer ID
-        embeds: [
-          {
-            url: `https://warpcast.com/${originalCastAuthor}/${originalCastId}`, // Link to the original cast
-            cast_id: originalCastId, // Embeds the original cast
-          },
-        ],
-      },
-      {
-        headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error posting new cast to Farcaster:", error.response?.data || error.message);
-    throw error;
-  }
-}
