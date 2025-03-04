@@ -83,7 +83,7 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
  * Posts a quotecast that embeds the original cast.
  */
 
-export async function postQuoteCastToFarcaster(quoteText: string, originalCastId: string) {
+export async function postQuoteCastToFarcaster(quoteText: string, originalCastHash: string, originalFid: number) {
     const url = "https://api.neynar.com/v2/farcaster/cast";
     const apiKey = process.env.NEYNAR_API_KEY;
     const signerUUID = process.env.NEYNAR_SIGNER_UUID;
@@ -102,8 +102,11 @@ export async function postQuoteCastToFarcaster(quoteText: string, originalCastId
           text: truncatedText,
           embeds: [
             {
-              url: `https://warpcast.com/c/${originalCastId}` // ✅ Use the Warpcast URL format
-            }
+              cast: {
+                fid: originalFid, // ✅ Include the original author's FID
+                hash: originalCastHash, // ✅ Include the original cast's hash
+              },
+            },
           ],
           signer_uuid: signerUUID,
         },
