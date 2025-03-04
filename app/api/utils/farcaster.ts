@@ -83,7 +83,7 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
  * Posts a quotecast that embeds the original cast.
  */
 
-export async function postQuoteCastToFarcaster(quoteText: string, originalCastHash: string, originalFid: number) {
+export async function postQuoteCastToFarcaster(quoteText: string, originalCastId: string, originalFid: number) {
     const url = "https://api.neynar.com/v2/farcaster/cast";
     const apiKey = process.env.NEYNAR_API_KEY;
     const signerUUID = process.env.NEYNAR_SIGNER_UUID;
@@ -102,10 +102,7 @@ export async function postQuoteCastToFarcaster(quoteText: string, originalCastHa
           text: truncatedText,
           embeds: [
             {
-              cast: {
-                fid: originalFid, // ✅ Include the original author's FID
-                hash: originalCastHash, // ✅ Include the original cast's hash
-              },
+              cast_id: originalCastId, // ✅ Use "cast_id" directly (not nested in "cast")
             },
           ],
           signer_uuid: signerUUID,
@@ -122,6 +119,7 @@ export async function postQuoteCastToFarcaster(quoteText: string, originalCastHa
       throw error;
     }
   }
+  
   
   
   
