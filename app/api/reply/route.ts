@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
-import { generateSatiricalRumor, postReplyToFarcaster } from "../utils/farcaster";
+import { generateSatiricalRumor, postReplyToFarcaster, postNewCastWithEmbed } from "../utils/farcaster";
 
 const WEBHOOK_SECRET = process.env.NEYNAR_WEBHOOK_SECRET || "YOUR_WEBHOOK_SECRET";
 
@@ -40,20 +40,27 @@ export async function POST(req: NextRequest) {
       console.error("❌ Invalid webhook payload:", JSON.stringify(data, null, 2));
       return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
     }
-    
+
     const messageText = data.data.text || "No text found";
     const originalCastId = data.data.hash;
-    
+    const originalCastAuthor = data.data.app?.username || "unknown"; // Get original cast author's username
 
     console.log("📝 Received cast:", messageText);
 
     // ✅ Respond immediately to Neynar to prevent timeout
     setImmediate(async () => {
       try {
-        const replyText = await generateSatiricalRumor(messageText);
-        console.log("🤖 Generated reply:", replyText);
-        await postReplyToFarcaster(replyText, originalCastId);
+        const generatedText = await generateSatiricalRumor(messageText);
+        console.log("🤖 Generated text:", generatedText);
+
+        // Post reply to original cast
+        await postReplyToFarcaster(generatedText, originalCastId);
         console.log("✅ Reply posted successfully");
+
+        // Post new cast with an embed of the original cast
+        await postNewCastWithEmbed(generatedText, originalCastId, originalCastAuthor);
+        console.log("✅ New cast with embed posted successfully");
+
       } catch (err) {
         console.error("❌ Error processing cast:", err);
       }
