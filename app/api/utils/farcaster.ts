@@ -5,6 +5,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const MAX_TEXT_LENGTH = 1024; // Farcaster's character limit
+
+/**
+ * Truncates text to ensure it is within the required length.
+ */
+function truncateText(text: string, maxLength: number = MAX_TEXT_LENGTH): string {
+  if (Buffer.byteLength(text, "utf-8") > maxLength) {
+    return text.slice(0, maxLength - 3) + "..."; // Add ellipsis if truncated
+  }
+  return text;
+}
+
 /**
  * Generates a satirical rumor based on the input cast text.
  */
@@ -23,7 +35,8 @@ export async function generateSatiricalRumor(messageText: string): Promise<strin
       temperature: 0.9,
     });
 
-    return response.choices[0].message?.content?.trim() || "Error: No response generated.";
+    const generatedText = response.choices[0].message?.content?.trim() || "Error: No response generated.";
+    return truncateText(generatedText); // Ensure the reply fits within Farcaster limits
   } catch (error) {
     console.error("❌ Error generating rumor:", error);
     return "A strange silence fills the air... maybe that's the real story.";
@@ -44,10 +57,12 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
   }
 
   try {
+    const truncatedText = truncateText(replyText); // Ensure text length is valid
+
     const response = await axios.post(
       url,
       {
-        text: replyText,
+        text: truncatedText,
         parent: originalCastId,
         signer_uuid: signerUUID,
       },
@@ -78,10 +93,12 @@ export async function postQuoteCastToFarcaster(quoteText: string, originalCastId
   }
 
   try {
+    const truncatedText = truncateText(quoteText); // Ensure text length is valid
+
     const response = await axios.post(
       url,
       {
-        text: quoteText,
+        text: truncatedText,
         embeds: [
           {
             cast: {
