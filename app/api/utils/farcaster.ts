@@ -84,10 +84,7 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
           signer_uuid: signerUUID, // The bot's signer ID
           embeds: [
             {
-              cast: {
-                fid: 0, // Placeholder for original cast FID (will be ignored)
-                hash: originalCastId, // Correct way to embed a cast in Neynar
-              },
+              cast_id: originalCastId, // Correct key for embedding a cast
             },
           ],
         },
