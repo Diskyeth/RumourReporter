@@ -102,7 +102,7 @@ export async function postQuoteCastToFarcaster(quoteText: string, originalCastId
           text: truncatedText,
           embeds: [
             {
-              cast_id: originalCastId, // ✅ Use "cast_id" directly (not nested in "cast")
+              cast: { castId: originalCastId }, // ✅ Correct structure
             },
           ],
           signer_uuid: signerUUID,
@@ -119,9 +119,6 @@ export async function postQuoteCastToFarcaster(quoteText: string, originalCastId
       throw error;
     }
   }
-  
-  
-  
   
   
   
