@@ -102,8 +102,8 @@ export async function postQuoteCastToFarcaster(quoteText: string, originalCastId
           text: truncatedText,
           embeds: [
             {
-              cast: { id: originalCastId }, // ✅ Ensure the ID is inside a cast object
-            },
+              url: `https://warpcast.com/c/${originalCastId}` // ✅ Use the Warpcast URL format
+            }
           ],
           signer_uuid: signerUUID,
         },
@@ -119,6 +119,7 @@ export async function postQuoteCastToFarcaster(quoteText: string, originalCastId
       throw error;
     }
   }
+  
   
   
   
