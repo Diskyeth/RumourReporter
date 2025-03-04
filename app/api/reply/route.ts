@@ -14,14 +14,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing signature" }, { status: 401 });
     }
 
-    // Compute HMAC SHA-256 hash
+    // Compute HMAC SHA-256 hash (hex encoding)
     const computedHash = crypto.createHmac("sha256", WEBHOOK_SECRET).update(body).digest("hex");
 
     console.log("🛠 Expected Signature:", computedHash);
-    console.log("🛠 Received Signature:", signature);
+    console.log("🛠 Received Signature:", signature.trim().toLowerCase());
 
-    if (computedHash !== signature) {
-      console.error("❌ Invalid signature! Possible causes: wrong secret, body mismatch.");
+    // Normalize both hashes (trim spaces & convert to lowercase)
+    if (computedHash !== signature.trim().toLowerCase()) {
+      console.error("❌ Invalid signature! Check webhook secret and payload.");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
