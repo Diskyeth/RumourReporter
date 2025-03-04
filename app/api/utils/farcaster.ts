@@ -31,7 +31,7 @@ export async function generateSatiricalRumor(messageText: string): Promise<strin
         { role: "system", content: systemPrompt },
         { role: "user", content: `${userPrompt} "${messageText}"` },
       ],
-      max_tokens: 256,
+      max_tokens: 125,
       temperature: 0.9,
     });
 
@@ -82,42 +82,41 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
 /**
  * Posts a quotecast that embeds the original cast.
  */
-export async function postQuoteCastToFarcaster(quoteText: string, originalCastId: string, originalFid: number) {
-  const url = "https://api.neynar.com/v2/farcaster/cast";
-  const apiKey = process.env.NEYNAR_API_KEY;
-  const signerUUID = process.env.NEYNAR_SIGNER_UUID;
 
-  if (!apiKey || !signerUUID) {
-    console.error("❌ Missing Neynar API Key or Signer UUID!");
-    throw new Error("Missing NEYNAR_API_KEY or NEYNAR_SIGNER_UUID in environment variables.");
-  }
-
-  try {
-    const truncatedText = truncateText(quoteText); // Ensure text length is valid
-
-    const response = await axios.post(
-      url,
-      {
-        text: truncatedText,
-        embeds: [
-          {
-            cast: {
-              hash: originalCastId,
-              fid: originalFid,
+export async function postQuoteCastToFarcaster(quoteText: string, originalCastId: string) {
+    const url = "https://api.neynar.com/v2/farcaster/cast";
+    const apiKey = process.env.NEYNAR_API_KEY;
+    const signerUUID = process.env.NEYNAR_SIGNER_UUID;
+  
+    if (!apiKey || !signerUUID) {
+      console.error("❌ Missing Neynar API Key or Signer UUID!");
+      throw new Error("Missing NEYNAR_API_KEY or NEYNAR_SIGNER_UUID in environment variables.");
+    }
+  
+    try {
+      const truncatedText = truncateText(quoteText); // Ensure text length is valid
+  
+      const response = await axios.post(
+        url,
+        {
+          text: truncatedText,
+          embeds: [
+            {
+              cast_id: originalCastId, // 🔥 Use `cast_id` instead of `hash`
             },
-          },
-        ],
-        signer_uuid: signerUUID,
-      },
-      {
-        headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-      }
-    );
-
-    console.log("✅ Quotecast posted successfully:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error posting quotecast to Farcaster:", error.response?.data || error.message);
-    throw error;
+          ],
+          signer_uuid: signerUUID,
+        },
+        {
+          headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+        }
+      );
+  
+      console.log("✅ Quotecast posted successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error posting quotecast to Farcaster:", error.response?.data || error.message);
+      throw error;
+    }
   }
-}
+  
