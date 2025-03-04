@@ -32,7 +32,7 @@ export async function generateSatiricalRumor(messageText: string): Promise<strin
 
 // Fetch Casts
 export async function fetchNewMessages() {
-  const url = "https://hub-api.neynar.com/v1/castsByFid?fid=884230&pageSize=3&reverse=true";
+  const url = "https://api.neynar.com/v2/farcaster/feed/user/casts?fid=884230&viewer_fid=1013079&limit=1&include_replies=false";
   const apiKey = process.env.NEYNAR_API_KEY;
 
   try {
