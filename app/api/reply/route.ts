@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { generateSatiricalRumor, postReplyToFarcaster } from "@/app/utils/farcaster"; // Ensure correct path
+import { generateSatiricalRumor, postReplyToFarcaster } from "../utils/farcaster"; // Ensure correct path
 
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "YOUR_WEBHOOK_SECRET";
 
