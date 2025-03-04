@@ -36,13 +36,14 @@ export async function POST(req: NextRequest) {
     const data = JSON.parse(body);
     console.log("✅ Webhook verified:", JSON.stringify(data, null, 2));
 
-    if (!data || !data.data || !data.data.castAddBody) {
+    if (!data || !data.data || data.type !== "cast.created" || !data.data.hash) {
       console.error("❌ Invalid webhook payload:", JSON.stringify(data, null, 2));
       return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
     }
-
-    const messageText = data.data.castAddBody.text;
+    
+    const messageText = data.data.text || "No text found";
     const originalCastId = data.data.hash;
+    
 
     console.log("📝 Received cast:", messageText);
 
