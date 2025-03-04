@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
         // Quotecast the cast
         const quoteText = `🤔 Interesting take! What do you think?`;
-        await postQuoteCastToFarcaster(quoteText, originalCastId, originalFid);
+        await postQuoteCastToFarcaster(quoteText, originalCastId);
         console.log("✅ Quotecast posted successfully");
       } catch (err) {
         console.error("❌ Error processing cast:", err);
