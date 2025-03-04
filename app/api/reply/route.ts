@@ -1,28 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
+import { createHmac } from "crypto";
 import { generateSatiricalRumor, postReplyToFarcaster } from "../utils/farcaster";
 
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "YOUR_WEBHOOK_SECRET";
+const WEBHOOK_SECRET = process.env.NEYNAR_WEBHOOK_SECRET || "YOUR_WEBHOOK_SECRET";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.text(); // Read raw request body
-    const signature = req.headers.get("x-neynar-signature");
+    const signature = req.headers.get("X-Neynar-Signature");
 
     if (!signature) {
-      console.error("❌ Missing signature");
+      console.error("❌ Missing Neynar signature");
       return NextResponse.json({ error: "Missing signature" }, { status: 401 });
     }
 
-    // Compute HMAC SHA-256 hash (hex encoding)
-    const computedHash = crypto.createHmac("sha256", WEBHOOK_SECRET).update(body).digest("hex");
+    if (!WEBHOOK_SECRET) {
+      console.error("❌ Missing webhook secret in environment");
+      return NextResponse.json({ error: "Webhook secret is not set" }, { status: 500 });
+    }
 
-    console.log("🛠 Expected Signature:", computedHash);
-    console.log("🛠 Received Signature:", signature.trim().toLowerCase());
+    // Compute HMAC SHA-512 hash
+    const hmac = createHmac("sha512", WEBHOOK_SECRET);
+    hmac.update(body);
+    const computedSignature = hmac.digest("hex");
 
-    // Normalize both hashes (trim spaces & convert to lowercase)
-    if (computedHash !== signature.trim().toLowerCase()) {
-      console.error("❌ Invalid signature! Check webhook secret and payload.");
+    console.log("🛠 Expected Signature:", computedSignature);
+    console.log("🛠 Received Signature:", signature);
+
+    if (computedSignature !== signature) {
+      console.error("❌ Invalid signature! Possible causes: wrong secret, body mismatch.");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
