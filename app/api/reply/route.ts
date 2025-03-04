@@ -36,7 +36,6 @@ export async function POST(req: NextRequest) {
 
     const messageText = data.data.text || "No text found";
     const originalCastId = data.data.hash;
-    const originalFid = data.data.fid; // ✅ Added: Get the FID of the original author
 
     console.log("📝 Received cast:", messageText);
 
@@ -49,9 +48,9 @@ export async function POST(req: NextRequest) {
         await postReplyToFarcaster(replyText, originalCastId);
         console.log("✅ Reply posted successfully");
 
-        // Quotecast the cast (✅ Pass both hash and fid)
+        // Quotecast the cast (✅ Only pass originalCastId)
         const quoteText = `🤔 Interesting take! What do you think?`;
-        await postQuoteCastToFarcaster(quoteText, originalCastId, originalFid);
+        await postQuoteCastToFarcaster(quoteText, originalCastId);
         console.log("✅ Quotecast posted successfully");
       } catch (err) {
         console.error("❌ Error processing cast:", err);
