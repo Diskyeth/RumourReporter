@@ -1,49 +1,27 @@
 import { NextResponse } from "next/server";
-import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "../utils/farcaster";
+import { generateSatiricalRumor, postReplyToFarcaster } from "../utils/farcaster";
 
-export async function GET() {
-  try {
-    console.log("🔄 Checking for new casts...");
-
-    const casts = await fetchNewMessages();
-    if (casts.length === 0) {
-      console.log("⚠️ No new casts found.");
-      return NextResponse.json({ message: "No new casts found" });
-    }
-
-    for (const cast of casts) {
-      if (cast.type === "MESSAGE_TYPE_CAST_ADD") {
-        console.log(`📝 New cast from signer ${cast.signer}: "${cast.text}"`);
-
-        // Generate a Rumour
-        const satireRumor = await generateSatiricalRumor(cast.text);
-
-        // Post reply
-        await postReplyToFarcaster(satireRumor, cast.hash);
-      }
-    }
-
-    return NextResponse.json({ message: "Satirical replies sent!" });
-  } catch (error) {
-    console.error("Server Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
-}
-
-// API handler
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messageText, castId, userFid } = body;
+    const { data } = body;
 
-    if (!messageText || !castId || !userFid) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!data || !data.castAddBody) {
+      return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
     }
 
-    const satireRumor = await generateSatiricalRumor(messageText);
-    const farcasterResponse = await postReplyToFarcaster(satireRumor, castId);
+    const messageText = data.castAddBody.text;
+    const originalCastId = data.hash;
 
-    return NextResponse.json({ reply: satireRumor, farcasterResponse }, { status: 200 });
+    console.log("Received new cast:", messageText);
+
+    // Generate AI response
+    const replyText = await generateSatiricalRumor(messageText);
+
+    // Post reply
+    await postReplyToFarcaster(replyText, originalCastId);
+
+    return NextResponse.json({ message: "Reply posted successfully!" });
   } catch (error) {
     console.error("Server Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

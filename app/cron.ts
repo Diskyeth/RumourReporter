@@ -5,7 +5,6 @@ import { fetchNewMessages, generateSatiricalRumor, postReplyToFarcaster } from "
 
 const FILE_PATH = path.resolve("replied_casts.json");
 
-// Load replies to see if bot replied already.
 let repliedCasts = new Set<string>();
 if (fs.existsSync(FILE_PATH)) {
   const data = fs.readFileSync(FILE_PATH, "utf-8");
