@@ -36,14 +36,16 @@ export async function POST(req: NextRequest) {
     const data = JSON.parse(body);
     console.log("✅ Webhook verified:", JSON.stringify(data, null, 2));
 
-    if (!data || !data.data || data.type !== "cast.created" || !data.data.hash) {
+    if (!data || !data.data || data.type !== "cast.created" || !data.data.hash || !data.data.author?.fid) {
       console.error("❌ Invalid webhook payload:", JSON.stringify(data, null, 2));
       return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
     }
 
     const messageText = data.data.text || "No text found";
-    const originalCastId = data.data.hash;
-    const originalCastAuthor = data.data.app?.username || "unknown"; // Get original cast author's username
+    const originalCastId = {
+      hash: data.data.hash, // ✅ Cast hash (ID of the cast)
+      fid: data.data.author.fid, // ✅ Author's Farcaster ID
+    };
 
     console.log("📝 Received cast:", messageText);
 
@@ -54,11 +56,11 @@ export async function POST(req: NextRequest) {
         console.log("🤖 Generated text:", generatedText);
 
         // Post reply to original cast
-        await postReplyToFarcaster(generatedText, originalCastId);
+        await postReplyToFarcaster(generatedText, originalCastId.hash);
         console.log("✅ Reply posted successfully");
 
         // Post new cast with an embed of the original cast
-        await postNewCastWithEmbed(generatedText, originalCastId,);
+        await postNewCastWithEmbed(generatedText, originalCastId);
         console.log("✅ New cast with embed posted successfully");
 
       } catch (err) {
