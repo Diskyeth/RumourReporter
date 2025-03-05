@@ -84,7 +84,7 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
           signer_uuid: signerUUID, // The bot's signer ID
           embeds: [
             {
-              cast_id: originalCastId, // Correct key for embedding a cast
+              castId: originalCastId, // Correct format for embedding a cast
             },
           ],
         },
@@ -99,4 +99,5 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
       throw error;
     }
   }
+  
   
