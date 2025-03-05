@@ -85,7 +85,7 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastHash
           embeds: [
             {
               cast: {
-                hash: originalCastHash, // ✅ Only sending the cast hash now
+               originalCastHash, // ✅ Only sending the cast hash now
               },
             },
           ],
