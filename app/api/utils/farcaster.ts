@@ -66,7 +66,7 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
 /**
  * Posts a new cast with an embedded original cast.
  */
-export async function postNewCastWithEmbed(newCastText: string, originalCastId: string) {
+export async function postNewCastWithEmbed(newCastText: string, originalCastHash: string) {
     const url = "https://api.neynar.com/v2/farcaster/cast";
     const apiKey = process.env.NEYNAR_API_KEY;
     const signerUUID = process.env.NEYNAR_SIGNER_UUID;
@@ -84,7 +84,9 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
           signer_uuid: signerUUID, // The bot's signer ID
           embeds: [
             {
-              castId: originalCastId, // Correct format for embedding a cast
+              cast: {
+                hash: originalCastHash, // ✅ Only sending the cast hash now
+              },
             },
           ],
         },
@@ -99,5 +101,6 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
       throw error;
     }
   }
+  
   
   
