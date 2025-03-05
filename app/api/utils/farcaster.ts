@@ -5,9 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-/**
- * Generates a satirical rumor based on the input text using OpenAI.
- */
+
 export async function generateSatiricalRumor(messageText: string): Promise<string> {
   try {
     const systemPrompt = process.env.PROMPT_SYSTEM || "Default system prompt.";
@@ -30,9 +28,7 @@ export async function generateSatiricalRumor(messageText: string): Promise<strin
   }
 }
 
-/**
- * Posts a reply to a Farcaster cast.
- */
+
 export async function postReplyToFarcaster(replyText: string, originalCastId: string) {
   const url = "https://api.neynar.com/v2/farcaster/cast";
   const apiKey = process.env.NEYNAR_API_KEY;
@@ -63,9 +59,6 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
   }
 }
 
-/**
- * Posts a new cast with an embedded original cast.
- */
 export async function postNewCastWithEmbed(newCastText: string, originalCastId: { hash: string; fid: number }) {
     const url = "https://api.neynar.com/v2/farcaster/cast";
     const apiKey = process.env.NEYNAR_API_KEY;
@@ -80,11 +73,11 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
       const response = await axios.post(
         url,
         {
-          text: newCastText, // The new generated rumor
-          signer_uuid: signerUUID, // The bot's signer ID
+          text: newCastText, 
+          signer_uuid: signerUUID, 
           embeds: [
             {
-              cast_id: originalCastId, // ✅ Correct: Sending cast_id as an object with hash & fid
+              cast_id: originalCastId,
             },
           ],
         },
