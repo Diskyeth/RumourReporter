@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
-import { generateSatiricalRumor, postReplyToFarcaster } from "../utils/farcaster";
+import { generateSatiricalRumor, postReplyToFarcaster, postNewCastWithEmbed } from "../utils/farcaster";
 
 const WEBHOOK_SECRET = process.env.NEYNAR_WEBHOOK_SECRET || "YOUR_WEBHOOK_SECRET";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.text(); // Read raw request body
+    const body = await req.text();
     const signature = req.headers.get("X-Neynar-Signature");
 
     if (!signature) {
@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Webhook secret is not set" }, { status: 500 });
     }
 
-    // Compute HMAC SHA-512 hash
     const hmac = createHmac("sha512", WEBHOOK_SECRET);
     hmac.update(body);
     const computedSignature = hmac.digest("hex");
@@ -32,28 +31,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    // Convert body back to JSON after verification
+
     const data = JSON.parse(body);
     console.log("✅ Webhook verified:", JSON.stringify(data, null, 2));
 
-    if (!data || !data.data || data.type !== "cast.created" || !data.data.hash) {
+    if (!data || !data.data || data.type !== "cast.created" || !data.data.hash || !data.data.author?.fid) {
       console.error("❌ Invalid webhook payload:", JSON.stringify(data, null, 2));
       return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
     }
-    
+
     const messageText = data.data.text || "No text found";
-    const originalCastId = data.data.hash;
-    
+    const originalCastId = {
+      hash: data.data.hash,
+      fid: data.data.author.fid, 
+    };
 
     console.log("📝 Received cast:", messageText);
 
-    // ✅ Respond immediately to Neynar to prevent timeout
     setImmediate(async () => {
       try {
-        const replyText = await generateSatiricalRumor(messageText);
-        console.log("🤖 Generated reply:", replyText);
-        await postReplyToFarcaster(replyText, originalCastId);
+        const generatedText = await generateSatiricalRumor(messageText);
+        console.log("🤖 Generated text:", generatedText);
+
+        // Post reply to original cast
+        await postReplyToFarcaster(generatedText, originalCastId.hash);
         console.log("✅ Reply posted successfully");
+
+        // Post new cast with an embed of the original cast
+        await postNewCastWithEmbed(generatedText, originalCastId);
+        console.log("✅ New cast with embed posted successfully");
+
       } catch (err) {
         console.error("❌ Error processing cast:", err);
       }

@@ -5,6 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+
 export async function generateSatiricalRumor(messageText: string): Promise<string> {
   try {
     const systemPrompt = process.env.PROMPT_SYSTEM || "Default system prompt.";
@@ -22,10 +23,11 @@ export async function generateSatiricalRumor(messageText: string): Promise<strin
 
     return response.choices[0].message?.content?.trim() || "Error: No response generated.";
   } catch (error) {
-    console.error("Error generating rumor:", error);
+    console.error("❌ Error generating rumor:", error);
     return "A strange silence fills the air... maybe that's the real story.";
   }
 }
+
 
 export async function postReplyToFarcaster(replyText: string, originalCastId: string) {
   const url = "https://api.neynar.com/v2/farcaster/cast";
@@ -33,7 +35,7 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
   const signerUUID = process.env.NEYNAR_SIGNER_UUID;
 
   if (!apiKey || !signerUUID) {
-    console.error("Missing Neynar API Key or Signer UUID!");
+    console.error("❌ Missing Neynar API Key or Signer UUID!");
     throw new Error("Missing NEYNAR_API_KEY or NEYNAR_SIGNER_UUID in environment variables.");
   }
 
@@ -56,3 +58,41 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
     throw error;
   }
 }
+
+export async function postNewCastWithEmbed(newCastText: string, originalCastId: { hash: string; fid: number }) {
+    const url = "https://api.neynar.com/v2/farcaster/cast";
+    const apiKey = process.env.NEYNAR_API_KEY;
+    const signerUUID = process.env.NEYNAR_SIGNER_UUID;
+  
+    if (!apiKey || !signerUUID) {
+      console.error("❌ Missing Neynar API Key or Signer UUID!");
+      throw new Error("Missing NEYNAR_API_KEY or NEYNAR_SIGNER_UUID in environment variables.");
+    }
+  
+    try {
+      const response = await axios.post(
+        url,
+        {
+          text: newCastText, 
+          signer_uuid: signerUUID, 
+          embeds: [
+            {
+              cast_id: originalCastId,
+            },
+          ],
+        },
+        {
+          headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+        }
+      );
+  
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error posting new cast to Farcaster:", error.response?.data || error.message);
+      throw error;
+    }
+  }
+  
+  
+  
+  
