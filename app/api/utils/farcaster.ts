@@ -1,98 +1,74 @@
-import OpenAI from "openai";
-import axios from "axios";
+import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "crypto";
+import { generateSatiricalRumor, postReplyToFarcaster, postNewCastWithEmbed } from "../utils/farcaster";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const WEBHOOK_SECRET = process.env.NEYNAR_WEBHOOK_SECRET || "YOUR_WEBHOOK_SECRET";
 
-
-export async function generateSatiricalRumor(messageText: string): Promise<string> {
+export async function POST(req: NextRequest) {
   try {
-    const systemPrompt = process.env.PROMPT_SYSTEM || "Default system prompt.";
-    const userPrompt = process.env.PROMPT_USER || "Default user prompt: ";
+    const body = await req.text();
+    const signature = req.headers.get("X-Neynar-Signature");
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: `${userPrompt} "${messageText}"` },
-      ],
-      max_tokens: 125,
-      temperature: 0.9,
+    if (!signature) {
+      console.error("❌ Missing Neynar signature");
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+
+    if (!WEBHOOK_SECRET) {
+      console.error("❌ Missing webhook secret in environment");
+      return NextResponse.json({ error: "Webhook secret is not set" }, { status: 500 });
+    }
+
+    const hmac = createHmac("sha512", WEBHOOK_SECRET);
+    hmac.update(body);
+    const computedSignature = hmac.digest("hex");
+
+    console.log("🛠 Expected Signature:", computedSignature);
+    console.log("🛠 Received Signature:", signature);
+
+    if (computedSignature !== signature) {
+      console.error("❌ Invalid signature! Possible causes: wrong secret, body mismatch.");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
+
+
+    const data = JSON.parse(body);
+    console.log("✅ Webhook verified:", JSON.stringify(data, null, 2));
+
+    if (!data || !data.data || data.type !== "cast.created" || !data.data.hash || !data.data.author?.fid) {
+      console.error("❌ Invalid webhook payload:", JSON.stringify(data, null, 2));
+      return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
+    }
+
+    const messageText = data.data.text || "No text found";
+    const originalCastId = {
+      hash: data.data.hash,
+      fid: data.data.author.fid, 
+    };
+
+    console.log("📝 Received cast:", messageText);
+
+    setImmediate(async () => {
+      try {
+        const generatedText = await generateSatiricalRumor(messageText);
+        console.log("🤖 Generated text:", generatedText);
+
+        // Post reply to original cast
+        await postReplyToFarcaster(generatedText, originalCastId.hash);
+        console.log("✅ Reply posted successfully");
+
+        // Post new cast with an embed of the original cast
+        await postNewCastWithEmbed(generatedText, originalCastId);
+        console.log("✅ New cast with embed posted successfully");
+
+      } catch (err) {
+        console.error("❌ Error processing cast:", err);
+      }
     });
 
-    return response.choices[0].message?.content?.trim() || "Error: No response generated.";
+    return NextResponse.json({ message: "Processing in background" });
   } catch (error) {
-    console.error("❌ Error generating rumor:", error);
-    return "A strange silence fills the air... maybe that's the real story.";
+    console.error("❌ Webhook Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
-
-
-export async function postReplyToFarcaster(replyText: string, originalCastId: string) {
-  const url = "https://api.neynar.com/v2/farcaster/cast";
-  const apiKey = process.env.NEYNAR_API_KEY;
-  const signerUUID = process.env.NEYNAR_SIGNER_UUID;
-
-  if (!apiKey || !signerUUID) {
-    console.error("❌ Missing Neynar API Key or Signer UUID!");
-    throw new Error("Missing NEYNAR_API_KEY or NEYNAR_SIGNER_UUID in environment variables.");
-  }
-
-  try {
-    const response = await axios.post(
-      url,
-      {
-        text: replyText,
-        parent: originalCastId,
-        signer_uuid: signerUUID,
-      },
-      {
-        headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error posting reply to Farcaster:", error.response?.data || error.message);
-    throw error;
-  }
-}
-
-export async function postNewCastWithEmbed(newCastText: string, originalCastId: { hash: string; fid: number }) {
-    const url = "https://api.neynar.com/v2/farcaster/cast";
-    const apiKey = process.env.NEYNAR_API_KEY;
-    const signerUUID = process.env.NEYNAR_SIGNER_UUID;
-  
-    if (!apiKey || !signerUUID) {
-      console.error("❌ Missing Neynar API Key or Signer UUID!");
-      throw new Error("Missing NEYNAR_API_KEY or NEYNAR_SIGNER_UUID in environment variables.");
-    }
-  
-    try {
-      const response = await axios.post(
-        url,
-        {
-          text: newCastText, 
-          signer_uuid: signerUUID, 
-          embeds: [
-            {
-              cast_id: originalCastId,
-            },
-          ],
-        },
-        {
-          headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-        }
-      );
-  
-      return response.data;
-    } catch (error) {
-      console.error("❌ Error posting new cast to Farcaster:", error.response?.data || error.message);
-      throw error;
-    }
-  }
-  
-  
-  
-  
