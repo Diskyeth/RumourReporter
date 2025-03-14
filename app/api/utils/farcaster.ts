@@ -61,7 +61,12 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
       }
     );
 
-    return response.data;
+    const castHash = response.data.cast.hash;
+    const castFid = response.data.cast.fid;
+    const username = await fetchUsernameFromFid(castFid);
+    const castUrl = `https://warpcast.com/${username}/${castHash}`;
+
+    return { castUrl, responseData: response.data };
   } catch (error) {
     console.error("❌ Error posting reply to Farcaster:", error.response?.data || error.message);
     throw error;
@@ -93,11 +98,7 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
 
     const castHash = response.data.cast.hash;
     const castFid = response.data.cast.fid;
-
-    // ✅ Fetch username using Neynar API
     const username = await fetchUsernameFromFid(castFid);
-
-    // ✅ Correct Warpcast URL
     const castUrl = `https://warpcast.com/${username}/${castHash}`;
 
     return { castUrl, responseData: response.data };
@@ -130,9 +131,15 @@ export async function fetchUsernameFromFid(fid: number): Promise<string> {
   }
 }
 
+// ✅ Extract only the first paragraph (headline) for Twitter post
+function extractHeadline(text: string): string {
+  return text.split("\n")[0]; // Take only the first paragraph
+}
+
 export async function postToTwitter(tweetText: string, castUrl: string) {
   try {
-    const fullTweet = `${tweetText} \n\n🔗 ${castUrl}`;
+    const headline = extractHeadline(tweetText); // Extract only headline
+    const fullTweet = `${headline} \n\n🔗 ${castUrl}`;
     console.log("🚀 Posting to X (Twitter):", fullTweet);
 
     const rwClient = twitterClient.readWrite;
@@ -143,5 +150,24 @@ export async function postToTwitter(tweetText: string, castUrl: string) {
   } catch (error) {
     console.error("❌ Error posting to X (Twitter):", error);
     throw error;
+  }
+}
+
+export async function processCastAndPost(messageText: string, originalCastId: { hash: string; fid: number }) {
+  try {
+    const rumor = await generateSatiricalRumor(messageText);
+
+    // Step 1: Post a direct reply to Farcaster
+    const replyData = await postReplyToFarcaster(rumor, originalCastId.hash);
+
+    // Step 2: Post a new cast quoting the original cast
+    const quoteData = await postNewCastWithEmbed(rumor, originalCastId);
+
+    // ✅ Post only the headline + cast link to Twitter
+    await postToTwitter(rumor, quoteData.castUrl);
+
+    console.log("✅ Done! Posted only the cast link and headline to Twitter.");
+  } catch (error) {
+    console.error("❌ Error in processing and posting:", error);
   }
 }
