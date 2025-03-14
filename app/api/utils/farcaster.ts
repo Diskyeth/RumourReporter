@@ -121,7 +121,7 @@ export async function fetchUsernameFromFid(fid: number): Promise<string> {
     });
 
     if (response.data && response.data.result && response.data.result.user) {
-      return response.data.result.user.username || "rumournews.eth"; // Fallback if username is missing
+      return response.data.result.user.username || "rumournews.eth"; 
     }
 
     return "rumournews.eth";
@@ -131,14 +131,14 @@ export async function fetchUsernameFromFid(fid: number): Promise<string> {
   }
 }
 
-// ✅ Extract only the first paragraph (headline) for Twitter post
+
 function extractHeadline(text: string): string {
-  return text.split("\n")[0]; // Take only the first paragraph
+  return text.split("\n")[0]; 
 }
 
 export async function postToTwitter(tweetText: string, castUrl: string) {
   try {
-    const headline = extractHeadline(tweetText); // Extract only headline
+    const headline = extractHeadline(tweetText); 
     const fullTweet = `${headline} \n\n🔗 ${castUrl}`;
     console.log("🚀 Posting to X (Twitter):", fullTweet);
 
@@ -157,16 +157,24 @@ export async function processCastAndPost(messageText: string, originalCastId: { 
   try {
     const rumor = await generateSatiricalRumor(messageText);
 
-    // Step 1: Post a direct reply to Farcaster
+ 
     const replyData = await postReplyToFarcaster(rumor, originalCastId.hash);
 
-    // Step 2: Post a new cast quoting the original cast
+
     const quoteData = await postNewCastWithEmbed(rumor, originalCastId);
 
-    // ✅ Post only the headline + cast link to Twitter
-    await postToTwitter(rumor, quoteData.castUrl);
+    console.log("⏳ Waiting 30 seconds before posting to X (Twitter)...");
 
-    console.log("✅ Done! Posted only the cast link and headline to Twitter.");
+
+    setTimeout(async () => {
+      try {
+        await postToTwitter(rumor, quoteData.castUrl);
+        console.log("✅ Done! Posted only the cast link and headline to Twitter.");
+      } catch (error) {
+        console.error("❌ Error posting to Twitter after delay:", error);
+      }
+    }, 30000); 
+
   } catch (error) {
     console.error("❌ Error in processing and posting:", error);
   }
