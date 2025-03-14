@@ -49,15 +49,14 @@ export async function POST(req: NextRequest) {
         const generatedText = await generateSatiricalRumor(messageText);
         console.log("🤖 Generated text:", generatedText);
 
-        // Post reply to original cast
+       
         await postReplyToFarcaster(generatedText, originalCastId.hash);
         console.log("✅ Reply posted successfully");
 
-        // Post new cast with an embed of the original cast
         const { castUrl } = await postNewCastWithEmbed(generatedText, originalCastId);
         console.log("✅ New cast with embed posted successfully:", castUrl);
 
-        // Delay Twitter post by 5 seconds to ensure the Farcaster URL is available
+       
         setTimeout(async () => {
           try {
             await postToTwitter(generatedText, castUrl);

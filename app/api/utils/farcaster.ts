@@ -9,7 +9,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ✅ Use OAuth 1.0a (Access Token & Secret) for posting
 const twitterClient = new TwitterApi({
   appKey: process.env.TWITTER_API_KEY!,
   appSecret: process.env.TWITTER_API_SECRET!,
@@ -94,7 +93,12 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
 
     const castHash = response.data.cast.hash;
     const castFid = response.data.cast.fid;
-    const castUrl = `https://warpcast.com/${castFid}/${castHash}`;
+
+    // ✅ Fetch username using Neynar API
+    const username = await fetchUsernameFromFid(castFid);
+
+    // ✅ Correct Warpcast URL
+    const castUrl = `https://warpcast.com/${username}/${castHash}`;
 
     return { castUrl, responseData: response.data };
   } catch (error) {
@@ -103,24 +107,41 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
   }
 }
 
-// ✅ Fixes Twitter 403 issue by using OAuth 1.0a (Access Token & Secret)
+export async function fetchUsernameFromFid(fid: number): Promise<string> {
+  const apiKey = process.env.NEYNAR_API_KEY;
+  if (!apiKey) {
+    console.error("❌ Missing Neynar API Key!");
+    return "rumournews.eth"; // Fallback
+  }
+
+  try {
+    const response = await axios.get(`https://api.neynar.com/v2/farcaster/user?fid=${fid}`, {
+      headers: { "x-api-key": apiKey },
+    });
+
+    if (response.data && response.data.result && response.data.result.user) {
+      return response.data.result.user.username || "rumournews.eth"; // Fallback if username is missing
+    }
+
+    return "rumournews.eth";
+  } catch (error) {
+    console.error("❌ Error fetching username:", error.response?.data || error.message);
+    return "rumournews.eth"; // Fallback
+  }
+}
+
 export async function postToTwitter(tweetText: string, castUrl: string) {
   try {
     const fullTweet = `${tweetText} \n\n🔗 ${castUrl}`;
-    console.log("🚀 Attempting to post to X (Twitter):", fullTweet);
+    console.log("🚀 Posting to X (Twitter):", fullTweet);
 
     const rwClient = twitterClient.readWrite;
     const { data } = await rwClient.v2.tweet(fullTweet);
-    
-    console.log("✅ Successfully posted to X (Twitter):", data);
+
+    console.log("✅ Successfully posted to Twitter:", data);
     return data;
   } catch (error) {
     console.error("❌ Error posting to X (Twitter):", error);
-
-    if (error?.response?.data) {
-      console.error("❌ X (Twitter) API Response:", JSON.stringify(error.response.data, null, 2));
-    }
-
     throw error;
   }
 }
