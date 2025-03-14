@@ -98,7 +98,7 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
 export async function postToTwitter(tweetText: string, castUrl: string) {
   try {
     const fullTweet = `${tweetText} \n\n🔗 ${castUrl}`;
-    console.log("🚀 Attempting to post to X:", fullTweet);
+    console.log("🚀 Attempting to post to X (Twitter):", fullTweet);
 
     const rwClient = twitterClient.readWrite;
     const { data } = await rwClient.v2.tweet(fullTweet);
@@ -107,13 +107,13 @@ export async function postToTwitter(tweetText: string, castUrl: string) {
     return data;
   } catch (error) {
     console.error("❌ Error posting to X (Twitter):", error);
-    
-    if (error instanceof Error) {
-      console.error("❌ Error Message:", error.message);
-    }
 
     if (error?.response?.data) {
       console.error("❌ X (Twitter) API Response:", JSON.stringify(error.response.data, null, 2));
+    }
+
+    if (error?.response?.status === 401) {
+      console.error("🚨 401 Unauthorized: Check your Bearer Token and App Permissions.");
     }
 
     throw error;
