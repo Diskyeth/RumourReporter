@@ -1,13 +1,21 @@
 import OpenAI from "openai";
 import axios from "axios";
 import { TwitterApi } from "twitter-api-v2";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Use OAuth 2.0 Bearer Token
-const twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN || "");
+// ✅ Use OAuth 1.0a (Access Token & Secret) for posting
+const twitterClient = new TwitterApi({
+  appKey: process.env.TWITTER_API_KEY!,
+  appSecret: process.env.TWITTER_API_SECRET!,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN!,
+  accessSecret: process.env.TWITTER_ACCESS_SECRET!,
+});
 
 export async function generateSatiricalRumor(messageText: string): Promise<string> {
   try {
@@ -95,6 +103,7 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
   }
 }
 
+// ✅ Fixes Twitter 403 issue by using OAuth 1.0a (Access Token & Secret)
 export async function postToTwitter(tweetText: string, castUrl: string) {
   try {
     const fullTweet = `${tweetText} \n\n🔗 ${castUrl}`;
@@ -110,10 +119,6 @@ export async function postToTwitter(tweetText: string, castUrl: string) {
 
     if (error?.response?.data) {
       console.error("❌ X (Twitter) API Response:", JSON.stringify(error.response.data, null, 2));
-    }
-
-    if (error?.response?.status === 401) {
-      console.error("🚨 401 Unauthorized: Check your Bearer Token and App Permissions.");
     }
 
     throw error;
