@@ -61,12 +61,7 @@ export async function postReplyToFarcaster(replyText: string, originalCastId: st
       }
     );
 
-    const castHash = response.data.cast.hash;
-    const castFid = response.data.cast.fid;
-    const username = await fetchUsernameFromFid(castFid);
-    const castUrl = `https://warpcast.com/${username}/${castHash}`;
-
-    return { castUrl, responseData: response.data };
+    return response.data;
   } catch (error) {
     console.error("❌ Error posting reply to Farcaster:", error.response?.data || error.message);
     throw error;
@@ -98,7 +93,11 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
 
     const castHash = response.data.cast.hash;
     const castFid = response.data.cast.fid;
+
+    // ✅ Fetch username using Neynar API
     const username = await fetchUsernameFromFid(castFid);
+
+    // ✅ Correct Warpcast URL
     const castUrl = `https://warpcast.com/${username}/${castHash}`;
 
     return { castUrl, responseData: response.data };
@@ -144,30 +143,5 @@ export async function postToTwitter(tweetText: string, castUrl: string) {
   } catch (error) {
     console.error("❌ Error posting to X (Twitter):", error);
     throw error;
-  }
-}
-
-export async function processCastAndPost(messageText: string, originalCastId: { hash: string; fid: number }) {
-  try {
-    const rumor = await generateSatiricalRumor(messageText);
-
-    // Step 1: Post a direct reply to Farcaster
-    const replyData = await postReplyToFarcaster(rumor, originalCastId.hash);
-
-    // Step 2: Post a new cast quoting the original cast
-    const quoteData = await postNewCastWithEmbed(rumor, originalCastId);
-
-    // 🚀 Choose which one to post on Twitter (e.g., only the quoted one)
-    const shouldPostReplyToTwitter = false; // Set to true if you prefer replies over quotes
-
-    if (shouldPostReplyToTwitter) {
-      await postToTwitter(rumor, replyData.castUrl);
-    } else {
-      await postToTwitter(rumor, quoteData.castUrl);
-    }
-
-    console.log("✅ Done! Only one cast was posted to Twitter.");
-  } catch (error) {
-    console.error("❌ Error in processing and posting:", error);
   }
 }
