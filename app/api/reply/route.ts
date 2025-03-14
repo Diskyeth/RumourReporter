@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
-import { generateSatiricalRumor, postReplyToFarcaster, postNewCastWithEmbed } from "../utils/farcaster";
+import { generateSatiricalRumor, postReplyToFarcaster, postNewCastWithEmbed, postToTwitter } from "../utils/farcaster";
 
 const WEBHOOK_SECRET = process.env.NEYNAR_WEBHOOK_SECRET || "YOUR_WEBHOOK_SECRET";
 
@@ -23,14 +23,10 @@ export async function POST(req: NextRequest) {
     hmac.update(body);
     const computedSignature = hmac.digest("hex");
 
-    console.log("🛠 Expected Signature:", computedSignature);
-    console.log("🛠 Received Signature:", signature);
-
     if (computedSignature !== signature) {
       console.error("❌ Invalid signature! Possible causes: wrong secret, body mismatch.");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
-
 
     const data = JSON.parse(body);
     console.log("✅ Webhook verified:", JSON.stringify(data, null, 2));
@@ -43,7 +39,7 @@ export async function POST(req: NextRequest) {
     const messageText = data.data.text || "No text found";
     const originalCastId = {
       hash: data.data.hash,
-      fid: data.data.author.fid, 
+      fid: data.data.author.fid,
     };
 
     console.log("📝 Received cast:", messageText);
@@ -58,8 +54,12 @@ export async function POST(req: NextRequest) {
         console.log("✅ Reply posted successfully");
 
         // Post new cast with an embed of the original cast
-        await postNewCastWithEmbed(generatedText, originalCastId);
-        console.log("✅ New cast with embed posted successfully");
+        const { castUrl } = await postNewCastWithEmbed(generatedText, originalCastId);
+        console.log("✅ New cast with embed posted successfully:", castUrl);
+
+        // Post to Twitter
+        await postToTwitter(generatedText, castUrl);
+        console.log("✅ Posted to Twitter successfully");
 
       } catch (err) {
         console.error("❌ Error processing cast:", err);
