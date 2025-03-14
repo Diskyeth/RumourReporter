@@ -57,9 +57,15 @@ export async function POST(req: NextRequest) {
         const { castUrl } = await postNewCastWithEmbed(generatedText, originalCastId);
         console.log("✅ New cast with embed posted successfully:", castUrl);
 
-        // Post to Twitter
-        await postToTwitter(generatedText, castUrl);
-        console.log("✅ Posted to Twitter successfully");
+        // Delay Twitter post by 5 seconds to ensure the Farcaster URL is available
+        setTimeout(async () => {
+          try {
+            await postToTwitter(generatedText, castUrl);
+            console.log("✅ Posted to X (Twitter) successfully");
+          } catch (err) {
+            console.error("❌ Error posting to X (Twitter):", err);
+          }
+        }, 5000);
 
       } catch (err) {
         console.error("❌ Error processing cast:", err);

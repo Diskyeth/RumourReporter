@@ -1,17 +1,13 @@
 import OpenAI from "openai";
 import axios from "axios";
-import { TwitterApi } from 'twitter-api-v2';
+import { TwitterApi } from "twitter-api-v2";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const twitterClient = new TwitterApi({
-  appKey: process.env.TWITTER_API_KEY!,
-  appSecret: process.env.TWITTER_API_SECRET!,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN!,
-  accessSecret: process.env.TWITTER_ACCESS_SECRET!,
-});
+// Use OAuth 2.0 Bearer Token
+const twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN || "");
 
 export async function generateSatiricalRumor(messageText: string): Promise<string> {
   try {
@@ -102,11 +98,24 @@ export async function postNewCastWithEmbed(newCastText: string, originalCastId: 
 export async function postToTwitter(tweetText: string, castUrl: string) {
   try {
     const fullTweet = `${tweetText} \n\n🔗 ${castUrl}`;
-    const { data } = await twitterClient.v2.tweet(fullTweet);
-    console.log("✅ Successfully posted to Twitter:", data);
+    console.log("🚀 Attempting to post to X:", fullTweet);
+
+    const rwClient = twitterClient.readWrite;
+    const { data } = await rwClient.v2.tweet(fullTweet);
+    
+    console.log("✅ Successfully posted to X (Twitter):", data);
     return data;
   } catch (error) {
-    console.error("❌ Error posting to Twitter:", error);
+    console.error("❌ Error posting to X (Twitter):", error);
+    
+    if (error instanceof Error) {
+      console.error("❌ Error Message:", error.message);
+    }
+
+    if (error?.response?.data) {
+      console.error("❌ X (Twitter) API Response:", JSON.stringify(error.response.data, null, 2));
+    }
+
     throw error;
   }
 }
